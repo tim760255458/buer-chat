@@ -151,9 +151,14 @@ let fn_chat = async (ctx, next) => {
                     ws: null,
                     nowRoom: '梦想屋',
                     pushMessage: '',
-                    allMessage: {}
+                    allMessage: {},
+                    userName: ''
                 },
                 mounted () {
+                    let a = document.cookie.indexOf('name')
+                    let b = document.cookie.indexOf(';')
+                    console.log(a, b, document.cookie)
+                    this.userName = document.cookie.slice(a + 5, b)
                     let ws = new WebSocket('ws://localhost:3000')
                     let self = this
                     ws.onopen = function (evt) {
@@ -175,7 +180,7 @@ let fn_chat = async (ctx, next) => {
                     toSend () {
                         let self = this
                         this.ws.send(JSON.stringify({
-                            name: 'buer',
+                            name: self.userName,
                             type: 'chat',
                             channel: self.nowRoom,
                             content: self.pushMessage
@@ -188,10 +193,10 @@ let fn_chat = async (ctx, next) => {
                         this.nowRoom = roomName
                         this.message = this.allMessage[this.nowRoom]
                         this.ws.send(JSON.stringify({
-                            name: 'buer',
+                            name: this.userName,
                             type: 'insert',
                             channel: roomName,
-                            content: '欢迎 buer 进入房间'
+                            content: '欢迎 ' + this.userName + ' 进入房间'
                         }))
                     },
                     addMessage () {

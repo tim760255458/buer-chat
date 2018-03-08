@@ -1,46 +1,11 @@
 let fn_index = async (ctx, next) => {
-    ctx.response.body = '<h1>Index</h1>'
+    ctx.response.body = '<h1>Index</h1><a href="/login">登录</a>'
 }
 let fn_post_login = async (ctx, next) => {
     let name = ctx.request.body.name || ''
     let password = ctx.request.body.password || ''
     console.log(`name: ${name}, password: ${password}`)
-    ctx.response.body = `<h1>${name}: ${password}</h1>
-    <p id="message-box"></p>
-    <input type="text" id="room">
-    <input type="text" id="message">
-    <button onclick="sendMessage()">发送</button>
-    <script>
-    let p = document.getElementById("message-box")
-    let ws = new WebSocket("ws://localhost:3000/login")
-    console.log(document.cookie)
-    ws.onopen = function (evt) {
-        console.log('连接已打开...')
-        p.innerText += '连接已打开...///'
-        ws.send(JSON.stringify({
-            id: 1,
-            type: 'message',
-            content: 'hello',
-            channel: 'default'
-        }))
-        p.innerText += '发送 hello///'
-    }
-    ws.onmessage = function (evt) {
-        console.log(evt.data)
-        p.innerText += '收到消息///'
-        p.innerText += evt.data
-    }
-    function sendMessage () {
-        let a = document.getElementById("message").value
-        let r = document.getElementById("room").value
-        ws.send(JSON.stringify({
-            id: 1,
-            type: 'message',
-            content: a,
-            channel: r
-        }))
-    }
-    </script>`
+    ctx.response.body = `<h1>${name}，您已登录成功！<a href="/chat">去聊天</a></h1>`
 }
 let fn_get_login = async (ctx, next) => {
     ctx.response.body = `<h1>login</h1>
