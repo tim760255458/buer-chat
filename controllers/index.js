@@ -7,6 +7,9 @@ let fn_post_login = async (ctx, next) => {
     console.log(`name: ${name}, password: ${password}`)
     ctx.response.body = `<h1>${name}: ${password}</h1>
     <p id="message-box"></p>
+    <input type="text" id="room">
+    <input type="text" id="message">
+    <button onclick="sendMessage()">发送</button>
     <script>
     let p = document.getElementById("message-box")
     let ws = new WebSocket("ws://localhost:3000/login")
@@ -14,13 +17,28 @@ let fn_post_login = async (ctx, next) => {
     ws.onopen = function (evt) {
         console.log('连接已打开...')
         p.innerText += '连接已打开...///'
-        ws.send('hello')
+        ws.send(JSON.stringify({
+            id: 1,
+            type: 'message',
+            content: 'hello',
+            channel: 'default'
+        }))
         p.innerText += '发送 hello///'
     }
     ws.onmessage = function (evt) {
         console.log(evt.data)
         p.innerText += '收到消息///'
         p.innerText += evt.data
+    }
+    function sendMessage () {
+        let a = document.getElementById("message").value
+        let r = document.getElementById("room").value
+        ws.send(JSON.stringify({
+            id: 1,
+            type: 'message',
+            content: a,
+            channel: r
+        }))
     }
     </script>`
 }

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>buer-chat</title>
+    <style>
+        body{
+            margin: 0;
+        }
+        #app{
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .box{
+            display: flex;
+            justify-content: space-between;
+        }
+        .left, .right{
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .left{
+            width: 400px;
+            border: 1px solid rgb(182, 181, 181);
+            height: 500px;
+            background-color: rgb(243, 241, 241);
+        }
+        .right{
+            width: 300px;
+            height: 500px;
+            margin-left: 10px;
+        }
+        .put{
+            display: flex;
+            justify-content: center;
+        }
+        .put input{
+            flex: 1;
+        }
+        .channels, .users{
+            width: 100%;
+            border: 1px solid rgb(182, 181, 181);
+            background-color: rgb(209, 248, 158);
+        }
+        .channels{
+            height: 200px;
+            margin-bottom: 10px;
+        }
+        .users, .message-box{
+            flex: 1;
+        }
+        .message-box, .channels, .users{
+            overflow: auto;
+            box-sizing: border-box;
+            padding: 10px;
+        }
+        ul{
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        ul li{
+            display: flex;
+            justify-content: flex-start;
+            font-size: 12px;
+        }
+        img{
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+            border-radius: 100%;
+        }
+        .user-info{
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex: 1;
+        }
+        .content{
+            font-size: 16px;
+        }
+        .user{
+            align-items: center;
+        }
+        .room{
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px 5px;
+            border-bottom: 1px solid rgb(95, 95, 95);
+        }
+        .room:hover{
+            color: orange;
+        }
+    </style>
+    <script src="../static/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>buer-chat</h1>
+        <div class="box">
+            <div class="left">
+                <div class="message-box">
+                    <ul>
+                        <li v-for="(item,index) in message" :key="index">
+                            <img src="./头像.jpg" alt="">
+                            <div class="user-info">
+                                <span>{{ item.name }}</span>
+                                <span class="content">{{ item.content }}</span>
+                            </div>
+                        </li>
+                        <span ref="span" style="display: block; height: 50px; width: 100%;"></span>
+                    </ul>
+                </div>
+                <div class="put">
+                    <input type="text" placeholder="输入信息..." v-model="pushMessage" @keyup.enter="toSend()">
+                    <button class="btn" @click="toSend()">发送</button>
+                </div>
+            </div>
+            <div class="right">
+                <div class="channels">
+                    <ul>
+                        <li v-for="(item,index) in room" :key="index" class="room" @click="inRoom(item)">{{ item }}</li>
+                    </ul>
+                </div>
+                <div class="users">
+                    <ul>
+                        <li v-for="(item,index) in user" :key="index" class="user">
+                            <img src="./小图标.png" alt="">
+                            <span>{{ item }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                message: [],
+                user: ['buer'],
+                room: ['梦想屋', '游戏', '聊天'],
+                ws: null,
+                nowRoom: '梦想屋',
+                pushMessage: '',
+                allMessage: {}
+            },
+            mounted () {
+                let ws = new WebSocket('ws://localhost:3000')
+                let self = this
+                ws.onopen = function (evt) {
+                    console.log('连接已打开...')
+                }
+                ws.onmessage = function (evt) {
+                    let msg = JSON.parse(JSON.parse(evt.data).a[1])
+                    console.log(msg)
+                    self.allMessage[msg.channel].push(msg)
+                    self.message = self.allMessage[self.nowRoom]
+                    if (msg.type === 'insert' && (self.user.indexOf(msg.name) < 0)){
+                        self.user.push(msg.name)
+                    }
+                    self.$refs.span.scrollIntoView(false)
+                }
+                this.ws = ws
+            },
+            methods: {
+                toSend () {
+                    let self = this
+                    this.ws.send(JSON.stringify({
+                        name: 'buer',
+                        type: 'chat',
+                        channel: self.nowRoom,
+                        content: self.pushMessage
+                    }))
+                },
+                inRoom (roomName) {
+                    if (!this.allMessage[roomName]) {
+                        this.allMessage[roomName] = []
+                    }
+                    this.nowRoom = roomName
+                    this.message = this.allMessage[this.nowRoom]
+                    this.ws.send(JSON.stringify({
+                        name: 'buer',
+                        type: 'insert',
+                        channel: roomName,
+                        content: '欢迎 buer 进入房间'
+                    }))
+                },
+                addMessage () {
+
+                },
+                addUser () {
+
+                }
+            }
+        })
+    </script>
+</body>
+</html>
